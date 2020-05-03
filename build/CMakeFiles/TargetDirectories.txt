@@ -1,5 +1,0 @@
-/home/zlad/Documents/projects/quickelf/build/CMakeFiles/rebuild_cache.dir
-/home/zlad/Documents/projects/quickelf/build/CMakeFiles/edit_cache.dir
-/home/zlad/Documents/projects/quickelf/build/app/CMakeFiles/rebuild_cache.dir
-/home/zlad/Documents/projects/quickelf/build/app/CMakeFiles/quickelf.dir
-/home/zlad/Documents/projects/quickelf/build/app/CMakeFiles/edit_cache.dir
