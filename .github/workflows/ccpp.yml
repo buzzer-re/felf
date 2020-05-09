@@ -12,6 +12,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: build
-      run: mkdir build && cd build/
-    - name: make
-      run: cmake .. && make
+      run: mkdir build && cd build/ && cmake .. && make
+    
