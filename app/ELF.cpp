@@ -1,5 +1,5 @@
 #include "ELF.h"
-adfasdfasfdasdf
+
 
 
 ELF::ELF(const std::string& fPath)
