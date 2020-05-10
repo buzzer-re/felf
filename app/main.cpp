@@ -2,8 +2,10 @@
 
 
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "Argparse.h"
+#include "ELF.h"
 
 
 #define INPUT_ARG "input"
@@ -24,10 +26,18 @@ int main(int argc, char* argv[])
     Argument& input = args.getArgument(INPUT_ARG);
     std::string& filePath = input.argValue;
 
-    if (! (input.argValue != "" && exists(filePath)) ) {
+    if (!exists(filePath)) {
         std::cerr << "Invalid input file!\n";
         return 1;
     }
+	
+	
+	ELF elf(filePath);
+	
+	if (!elf.valid()) {
+		std::cerr << "Invalid ELF provided!\n";
+		return 1;
+	}
 
     return 0;   
 }
