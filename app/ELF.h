@@ -26,6 +26,11 @@ private:
 	void* mappedFile;
 	off_t fileSize;
 
+#if __BYTE_ORDER == __ORDER_LITTLE_ENDIAN__
+	uint32_t elf_magic = 0x464c457f;
+#else
+	uint32_t elf_magic = 0x7f454c46;
+#endif 
 
 	Elf64_Ehdr* elfHeader;
 };

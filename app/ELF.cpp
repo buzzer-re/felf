@@ -13,11 +13,10 @@ ELF::ELF(const std::string& fPath)
 	}
 
 	elfHeader = (Elf64_Ehdr*) mappedFile;
-	uint32_t magic_elf = 0x464c457f; // little endian -> 0x7f454c46;
 	
 	int e_ident_s = sizeof(elfHeader->e_ident)/sizeof(unsigned char);
 
-	this->validELF = magic_elf == *(uint32_t*)&elfHeader->e_ident 
+	this->validELF = this->elf_magic == *(uint32_t*)&elfHeader->e_ident 
 					 && e_ident_s == EI_NIDENT;	
 
 }
