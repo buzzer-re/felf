@@ -89,9 +89,7 @@ bool ArgParse::parse()
 
         argIt->second.argIndex = op_i;
 
-        if (argIt->second.required_arg) {
-            argIt->second.argValue = optarg;
-        }
+        argIt->second.argValue = argIt->second.required_arg ? optarg : " ";
 
         if (argIt->second.required) matches++;
 

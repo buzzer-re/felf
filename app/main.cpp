@@ -9,7 +9,7 @@
 
 
 #define INPUT_ARG "input"
-#define DISPLAY_ARG "display"
+#define DISPLAY_ARG "display-header"
 
 
 bool exists(const std::string& filePath);
@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
 
     ArgParse args(argc, argv);
     args.addArgument(INPUT_ARG, true, true);
-    args.addArgument(DISPLAY_ARG, true, false);
-
+    args.addArgument(DISPLAY_ARG, false, false);
+    
     args.parse();
     
     Argument& input = args.getArgument(INPUT_ARG);
@@ -31,13 +31,19 @@ int main(int argc, char* argv[])
         return 1;
     }
 	
-	
 	ELF elf(filePath);
 	
 	if (!elf.valid()) {
 		std::cerr << "Invalid ELF provided!\n";
 		return 1;
 	}
+
+    Argument& displayHeader = args.getArgument(DISPLAY_ARG);
+
+    if (!displayHeader.argValue.empty()) {
+        elf.displayHeader();
+    }
+
 
     return 0;   
 }

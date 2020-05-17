@@ -28,6 +28,7 @@ ELF::~ELF()
 		munmap(this->mappedFile, this->fileSize);
 }
 
+
 void* ELF::map_file(const std::string& file)
 {
 	const char* file_c = file.c_str();
@@ -42,4 +43,27 @@ void* ELF::map_file(const std::string& file)
 	void* mapped_file = mmap(NULL, fileSize, PROT_READ, MAP_SHARED, fd, 0);
 
 	return mapped_file;
+}
+
+
+/**
+COMMENT
+**/
+void ELF::displayHeader() const
+{
+	std::cout << "Header:\n";
+	std::cout << "\tMagic:\t";
+
+	for (int i = 0; i < EI_NIDENT; ++i) {
+		auto iter = HEADER_MAP_VALUES.find(i);
+
+		if (iter != HEADER_MAP_VALUES.end()) {
+			auto valueIter = iter->second.find(this->elfHeader->e_ident[i]);
+			if (valueIter != iter->second.end()) {
+				std::cout << valueIter->second << std::endl;
+			}
+		}
+	}
+
+	std::cout << std::endl;
 }
