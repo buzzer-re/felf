@@ -52,16 +52,24 @@ COMMENT
 void ELF::displayHeader() const
 {
 	std::cout << "Header:\n";
-	std::cout << "\tMagic:\t";
-
+	
+	HEADER_MAP_VALUE_TO_STRING::const_iterator valueIter;
+	HEADER_MAP_BYTE_TO_MAP::const_iterator iter;
+	std::string valueOutput;
+	unsigned char byteat;
+	
+	/// Magic Number parser
 	for (int i = 0; i < EI_NIDENT; ++i) {
-		auto iter = HEADER_MAP_VALUES.find(i);
+		iter = HEADER_MAP_VALUES.find(i);
+		byteat = this->elfHeader->e_ident[i];
 
 		if (iter != HEADER_MAP_VALUES.end()) {
-			auto valueIter = iter->second.find(this->elfHeader->e_ident[i]);
+			valueIter = iter->second.find(byteat);
 			if (valueIter != iter->second.end()) {
-				std::cout << valueIter->second << std::endl;
+				std::printf("%s (0x%x)\n", valueIter->second, byteat);
 			}
+		} else {
+			std::printf("0x%x ", SHRINK_ASCII(byteat), byteat);
 		}
 	}
 
