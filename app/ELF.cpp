@@ -15,9 +15,12 @@ ELF::ELF(const std::string& fPath)
 	elfHeader = (Elf64_Ehdr*) mappedFile;
 	
 	int e_ident_s = sizeof(elfHeader->e_ident)/sizeof(unsigned char);
-
 	this->validELF = this->elf_magic == *(uint32_t*)&elfHeader->e_ident 
-					 && e_ident_s == EI_NIDENT;	
+					 && e_ident_s == EI_NIDENT;
+	
+	if (this->validELF) {
+		this->build_elf();
+	}
 
 }
 
@@ -41,10 +44,33 @@ void* ELF::map_file(const std::string& file)
 	if (!fd) return nullptr;
 
 	void* mapped_file = mmap(NULL, fileSize, PROT_READ, MAP_SHARED, fd, 0);
+	close(fd);
 
-	return mapped_file;
+	return mapped_file;	
 }
 
+/**
+ * 
+ * Build elf file structs
+ */
+void ELF::build_elf()
+{	
+	/// Section array	
+	this->elfSection.length  = this->elfHeader->e_shnum;
+
+	/// This point to first section table array element
+	this->elfSection.section_head = (Elf64_Shdr*) ( (uint64_t)this->mappedFile + this->elfHeader->e_shoff);
+	this->elfSection.size    = this->elfHeader->e_shentsize;
+	this->stringSectionHdr = (Elf64_Shdr*) ((uint64_t) this->elfSection.section_head + ((uint64_t) this->elfSection.size * this->elfHeader->e_shstrndx));
+	
+	// Elf64_Shdr* head;
+	// for (int i = 0; i < this->elfSection.length; ++i) {
+	// 	head = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
+	// 	std::printf("%s\n", (char*) ((uint64_t) this->stringSectionHdr->sh_offset + (uint64_t) this->mappedFile) + head->sh_name);
+
+	// }
+
+}
 
 /**
 COMMENT
@@ -52,12 +78,12 @@ COMMENT
 void ELF::displayHeader() const
 {
 	std::cout << "Header:\n";
-	
+
 	HEADER_MAP_VALUE_TO_STRING::const_iterator valueIter;
 	HEADER_MAP_BYTE_TO_MAP::const_iterator iter;
 	std::string valueOutput;
 	unsigned char byteat;
-	
+
 	/// Magic Number parser
 	for (int i = 0; i < EI_NIDENT; ++i) {
 		iter = HEADER_MAP_VALUES.find(i);
@@ -66,7 +92,7 @@ void ELF::displayHeader() const
 		if (iter != HEADER_MAP_VALUES.end()) {
 			valueIter = iter->second.find(byteat);
 			if (valueIter != iter->second.end()) {
-				std::printf("%s (0x%x)\n", valueIter->second, byteat);
+				// std::printf("%s (0x%x)\n", valueIter->second, byteat);
 			}
 		} else {
 			std::printf("0x%x ", SHRINK_ASCII(byteat), byteat);

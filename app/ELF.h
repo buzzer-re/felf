@@ -15,11 +15,6 @@
 
 #include "utils.h"
 
-// struct Output {
-// 	std::string raw_output;
-// 	// std::string json_output;
-// 	// std::string yaml_output;
-// };
 
 typedef std::unordered_map<uint64_t, const char*> HEADER_MAP_VALUE_TO_STRING;
 typedef std::unordered_map<uint64_t, HEADER_MAP_VALUE_TO_STRING> HEADER_MAP_BYTE_TO_MAP;
@@ -62,6 +57,14 @@ static const HEADER_MAP_BYTE_TO_MAP HEADER_MAP_VALUES = {
 	},
 };
 
+
+struct SectionHeaderTable {
+	Elf64_Shdr* section_head;
+	char* stringTableAddr;
+	uint16_t length;
+	uint16_t size;
+};
+
 class ELF {
 public:
 	ELF(const std::string& fPath);
@@ -73,6 +76,7 @@ public:
 
 private:
 	void* map_file(const std::string& file);
+	void build_elf(); 
 
 private:
 	bool validELF;
@@ -85,5 +89,8 @@ private:
 	uint32_t elf_magic = 0x7f454c46;
 #endif 
 
-	Elf64_Ehdr* elfHeader;	
+	// Elf structs
+	Elf64_Ehdr* elfHeader;
+	SectionHeaderTable elfSection;
+	Elf64_Shdr* stringSectionHdr;
 };
