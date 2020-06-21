@@ -55,25 +55,66 @@ void* ELF::map_file(const std::string& file)
  */
 void ELF::build_elf()
 {	
+	Elf64_Shdr* section;
+	Elf64_Sym* symbol;
+	std::string sectionName;
+	
 	/// Section array	
 	this->elfSection.length  = this->elfHeader->e_shnum;
-	
-	/// This point to first section table array element
 	this->elfSection.section_head = (Elf64_Shdr*) ( (uint64_t)this->mappedFile + this->elfHeader->e_shoff);
 	this->elfSection.size    = this->elfHeader->e_shentsize;
 	this->stringSectionHdr = (Elf64_Shdr*) ((uint64_t) this->elfSection.section_head + ((uint64_t) this->elfSection.size * this->elfHeader->e_shstrndx));
 	
-	Elf64_Shdr* head;
-	std::string sectionName;
-	void* sectionAddress;
-	/// Map all sections in a map
-	for (int i = 0; i < this->elfSection.length; ++i) {
-		head = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
-		sectionName = (char*) ( ((uint64_t) this->stringSectionHdr->sh_offset + (uint64_t) this->mappedFile) + head->sh_name);
-		sectionAddress = (void*) ( head->sh_offset + (uint64_t) this->mappedFile);
+	/// Building section map
 
-		this->sectionsMapped.insert(std::make_pair(sectionName,  sectionAddress));
+	/// Map all sections in a map
+	for (auto i = 0; i < this->elfSection.length; ++i) {
+		section = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
+		sectionName = this->getNameFromStringTable(section->sh_name);
+		this->elfSection.sectionsMapped.insert(std::make_pair(sectionName,  section));
 	}
+
+	/// End section map
+	
+	/// Map symtab
+	this->elfSection.sectionsMappedIter = this->elfSection.sectionsMapped.find(".symtab");
+	if (this->elfSection.sectionsMappedIter != this->elfSection.sectionsMapped.end()) { // Found symbol table
+		this->stringSymbolTable = this->elfSection.sectionsMapped.find(".strtab")->second;
+		this->symbolTable.section = this->elfSection.sectionsMappedIter->second;
+		this->symbolTable.symbol_head = (Elf64_Sym*) ((uint64_t) this->symbolTable.section->sh_offset + (uint64_t) this->mappedFile);
+		this->symbolTable.size = sizeof(Elf64_Sym); 
+		this->symbolTable.length = this->elfSection.sectionsMappedIter->second->sh_size/sizeof(Elf64_Sym);
+
+		std::string symbolName;
+		for (auto i = 0; i < this->symbolTable.length; ++i) {
+			symbol = (Elf64_Sym*) ((uint64_t) this->symbolTable.symbol_head + (i * this->symbolTable.size));
+			symbolName = this->getNameFromSymbolStringTable(symbol->st_name);
+			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
+		}
+	}
+
+}
+
+/**
+ * Extract name from string table
+ */
+std::string ELF::getNameFromStringTable(uint64_t index) const
+{
+	std::string name = (char*) ( ((uint64_t) this->stringSectionHdr->sh_offset + (uint64_t) this->mappedFile) + index);
+
+	return name;
+}
+
+/*
+	Extract name from symbol string table
+*/
+
+std::string ELF::getNameFromSymbolStringTable(uint64_t index) const
+{
+
+	std::string name = (char*) ( ((uint64_t) this->stringSymbolTable->sh_offset + (uint64_t) this->mappedFile) + index);
+
+	return name;
 }
 
 /**

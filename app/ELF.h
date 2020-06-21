@@ -61,9 +61,19 @@ static const HEADER_MAP_BYTE_TO_MAP HEADER_MAP_VALUES = {
 
 struct SectionHeaderTable {
 	Elf64_Shdr* section_head;
-	char* stringTableAddr;
 	uint16_t length;
 	uint16_t size;
+	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
+	std::unordered_map<std::string , Elf64_Shdr*>::const_iterator sectionsMappedIter;
+};
+
+struct SymbolTable {
+	Elf64_Sym* symbol_head;
+	Elf64_Shdr* section;
+	uint16_t size;
+	uint16_t length;
+	std::unordered_map<std::string , Elf64_Sym*> symbolsMapped;
+	std::unordered_map<std::string , Elf64_Sym*>::const_iterator symbolsMappedIter;
 };
 
 class ELF {
@@ -77,7 +87,10 @@ public:
 
 private:
 	void* map_file(const std::string& file);
-	void build_elf(); 
+	void build_elf();
+
+	std::string getNameFromStringTable(uint64_t index) const;
+	std::string getNameFromSymbolStringTable(uint64_t index) const;
 
 private:
 	bool validELF;
@@ -92,9 +105,10 @@ private:
 
 	// Elf structs
 	Elf64_Ehdr* elfHeader;
-	SectionHeaderTable elfSection;
 	Elf64_Shdr* stringSectionHdr;
+	Elf64_Shdr* stringSymbolTable;
 
-	std::unordered_map<std::string , void*> sectionsMapped;
+	SectionHeaderTable elfSection;
+	SymbolTable symbolTable;
 	
 };
