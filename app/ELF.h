@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 #include <string>
 #include <cstdio>
 
@@ -93,4 +94,7 @@ private:
 	Elf64_Ehdr* elfHeader;
 	SectionHeaderTable elfSection;
 	Elf64_Shdr* stringSectionHdr;
+
+	std::unordered_map<std::string , void*> sectionsMapped;
+	
 };

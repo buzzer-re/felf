@@ -57,19 +57,23 @@ void ELF::build_elf()
 {	
 	/// Section array	
 	this->elfSection.length  = this->elfHeader->e_shnum;
-
+	
 	/// This point to first section table array element
 	this->elfSection.section_head = (Elf64_Shdr*) ( (uint64_t)this->mappedFile + this->elfHeader->e_shoff);
 	this->elfSection.size    = this->elfHeader->e_shentsize;
 	this->stringSectionHdr = (Elf64_Shdr*) ((uint64_t) this->elfSection.section_head + ((uint64_t) this->elfSection.size * this->elfHeader->e_shstrndx));
 	
-	// Elf64_Shdr* head;
-	// for (int i = 0; i < this->elfSection.length; ++i) {
-	// 	head = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
-	// 	std::printf("%s\n", (char*) ((uint64_t) this->stringSectionHdr->sh_offset + (uint64_t) this->mappedFile) + head->sh_name);
+	Elf64_Shdr* head;
+	std::string sectionName;
+	void* sectionAddress;
+	/// Map all sections in a map
+	for (int i = 0; i < this->elfSection.length; ++i) {
+		head = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
+		sectionName = (char*) ( ((uint64_t) this->stringSectionHdr->sh_offset + (uint64_t) this->mappedFile) + head->sh_name);
+		sectionAddress = (void*) ( head->sh_offset + (uint64_t) this->mappedFile);
 
-	// }
-
+		this->sectionsMapped.insert(std::make_pair(sectionName,  sectionAddress));
+	}
 }
 
 /**
