@@ -57,14 +57,30 @@ void ELF::build_elf()
 {	
 	Elf64_Shdr* section;
 	Elf64_Sym* symbol;
+	Elf64_Phdr* phr;
 	std::string sectionName;
+	
+
+	/// Mapping program header table
+	if (elfHeader->e_phoff) {
+		this->phrTable.length = elfHeader->e_phnum;
+		this->phrTable.size = elfHeader->e_phentsize;
+		this->phrTable.program_head = (Elf64_Phdr*) ( (uint64_t) elfHeader->e_phoff + (uint64_t) this->mappedFile);
+		this->phrTable.phrVector.reserve(this->phrTable.size);
+
+		for (auto i = 0; i < phrTable.length; ++i) {
+			phr = (Elf64_Phdr*) ( (uint64_t) this->phrTable.program_head + (i*this->phrTable.size));
+			this->phrTable.phrVector.push_back(phr);
+		}
+	}
+	/// Ending mapping program header table
 	
 	/// Section array	
 	this->elfSection.length  = this->elfHeader->e_shnum;
 	this->elfSection.section_head = (Elf64_Shdr*) ( (uint64_t)this->mappedFile + this->elfHeader->e_shoff);
 	this->elfSection.size    = this->elfHeader->e_shentsize;
 	this->stringSectionHdr = (Elf64_Shdr*) ((uint64_t) this->elfSection.section_head + ((uint64_t) this->elfSection.size * this->elfHeader->e_shstrndx));
-	
+	this->elfSection.sectionsMapped.reserve(this->elfSection.length);
 	/// Building section map
 
 	/// Map all sections in a map
@@ -84,6 +100,7 @@ void ELF::build_elf()
 		this->symbolTable.symbol_head = (Elf64_Sym*) ((uint64_t) this->symbolTable.section->sh_offset + (uint64_t) this->mappedFile);
 		this->symbolTable.size = sizeof(Elf64_Sym); 
 		this->symbolTable.length = this->elfSection.sectionsMappedIter->second->sh_size/sizeof(Elf64_Sym);
+		this->symbolTable.symbolsMapped.reserve(this->symbolTable.length);
 
 		std::string symbolName;
 		for (auto i = 0; i < this->symbolTable.length; ++i) {
@@ -92,6 +109,7 @@ void ELF::build_elf()
 			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
 		}
 	}
+
 
 }
 

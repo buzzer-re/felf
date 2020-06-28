@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 #include <utility>
 #include <string>
 #include <cstdio>
@@ -76,6 +77,13 @@ struct SymbolTable {
 	std::unordered_map<std::string , Elf64_Sym*>::const_iterator symbolsMappedIter;
 };
 
+struct ProgramHeaderTable {
+	Elf64_Phdr* program_head;
+	uint16_t size;
+	uint16_t length;
+	std::vector<Elf64_Phdr*> phrVector;
+};
+
 class ELF {
 public:
 	ELF(const std::string& fPath);
@@ -110,5 +118,7 @@ private:
 
 	SectionHeaderTable elfSection;
 	SymbolTable symbolTable;
+	ProgramHeaderTable phrTable;
+
 	
 };
