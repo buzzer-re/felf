@@ -10,16 +10,12 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 #include <string>
 #include <cstdio>
 
 #include "utils.h"
 
-// struct Output {
-// 	std::string raw_output;
-// 	// std::string json_output;
-// 	// std::string yaml_output;
-// };
 
 typedef std::unordered_map<uint64_t, const char*> HEADER_MAP_VALUE_TO_STRING;
 typedef std::unordered_map<uint64_t, HEADER_MAP_VALUE_TO_STRING> HEADER_MAP_BYTE_TO_MAP;
@@ -62,6 +58,24 @@ static const HEADER_MAP_BYTE_TO_MAP HEADER_MAP_VALUES = {
 	},
 };
 
+
+struct SectionHeaderTable {
+	Elf64_Shdr* section_head;
+	uint16_t length;
+	uint16_t size;
+	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
+	std::unordered_map<std::string , Elf64_Shdr*>::const_iterator sectionsMappedIter;
+};
+
+struct SymbolTable {
+	Elf64_Sym* symbol_head;
+	Elf64_Shdr* section;
+	uint16_t size;
+	uint16_t length;
+	std::unordered_map<std::string , Elf64_Sym*> symbolsMapped;
+	std::unordered_map<std::string , Elf64_Sym*>::const_iterator symbolsMappedIter;
+};
+
 class ELF {
 public:
 	ELF(const std::string& fPath);
@@ -73,6 +87,10 @@ public:
 
 private:
 	void* map_file(const std::string& file);
+	void build_elf();
+
+	std::string getNameFromStringTable(uint64_t index) const;
+	std::string getNameFromSymbolStringTable(uint64_t index) const;
 
 private:
 	bool validELF;
@@ -85,5 +103,12 @@ private:
 	uint32_t elf_magic = 0x7f454c46;
 #endif 
 
-	Elf64_Ehdr* elfHeader;	
+	// Elf structs
+	Elf64_Ehdr* elfHeader;
+	Elf64_Shdr* stringSectionHdr;
+	Elf64_Shdr* stringSymbolTable;
+
+	SectionHeaderTable elfSection;
+	SymbolTable symbolTable;
+	
 };
