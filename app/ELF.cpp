@@ -92,6 +92,7 @@ void ELF::build_elf()
 			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
 		}
 	}
+	
 
 }
 
