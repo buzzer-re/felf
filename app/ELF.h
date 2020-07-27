@@ -31,7 +31,7 @@ struct SectionHeaderTable {
 	uint16_t size;
 	std::vector<Elf64_Shdr*> sectionArray;
 	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
-	std::unordered_map<std::string , Elf64_Shdr*>::const_iterator sectionsMappedIter;
+	std::unordered_map<std::string , Elf64_Shdr*>::iterator sectionsMappedIter;
 };
 
 
@@ -47,10 +47,10 @@ struct SymbolTable {
 	uint16_t size;
 	uint16_t length;
 	std::unordered_map<std::string , Elf64_Sym*> symbolsMapped;
-	std::unordered_map<std::string , Elf64_Sym*>::const_iterator symbolsMappedIter;
+	std::unordered_map<std::string , Elf64_Sym*>::iterator symbolsMappedIter;
 
-	std::unordered_map<std::string, SymbolData*> symbolDataMapped;
-	std::unordered_map<std::string , SymbolData*>::const_iterator symbolDataMappedIter;
+	std::unordered_map<std::string, SymbolData> symbolDataMapped;
+	std::unordered_map<std::string , SymbolData>::iterator symbolDataMappedIter;
 };
 
 
@@ -71,6 +71,11 @@ public:
 	void displayHeader() const;
 
 	bool save(const std::string& output) const;
+
+	void incFileSize(uint value);
+	void decFileSize(uint value);
+
+	inline int getFileSize() const { return this->fileSize; }
 
 private:
 	void* map_file(const std::string& file, int mode);
