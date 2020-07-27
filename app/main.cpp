@@ -41,12 +41,13 @@ int main(int argc, char* argv[])
 
 
     elf.symbolTable.symbolDataMappedIter = elf.symbolTable.symbolDataMapped.find("main");
+    
 
     for (unsigned i = 0; i < elf.symbolTable.symbolDataMappedIter->second->size; ++i) {
-        printf("0x%x", * (elf.symbolTable.symbolDataMapped.find("main")->second->data + i));
+        printf("%c", * (elf.symbolTable.symbolDataMapped.find("main")->second->data + i));
     }
     
-    elf.save("quicksave");
+    // elf.save("quicksave");
     
     return 0;   
 }

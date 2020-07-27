@@ -108,7 +108,6 @@ void ELF::build_quick_elf()
 		section = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
 		sectionName = this->getNameFromStringTable(section->sh_name);
 		this->elfSection.sectionsMapped.insert(std::make_pair(sectionName,  section));
-		std::cout << sectionName << " " << i << std::endl;
 		this->elfSection.sectionArray.push_back(section);
 	}
 
@@ -125,18 +124,18 @@ void ELF::build_quick_elf()
 		this->symbolTable.symbolsMapped.reserve(this->symbolTable.length);
 
 		std::string symbolName;
+		std::cout << "Parsing " << symbolTable.length << " symbols\n";
 		for (auto i = 0; i < this->symbolTable.length; ++i) {
 			symbol = (Elf64_Sym*) ((uint64_t) this->symbolTable.symbol_head + (i * this->symbolTable.size));
 			symbolName = this->getNameFromSymbolStringTable(symbol->st_name);
 			SymbolData* symbolData = new SymbolData;
 			
 			symbolData->size = symbol->st_size;
-			if (symbol->st_shndx < this->elfSection.sectionArray.size()) {
-				// std::cout << "Symbol index -> " << symbol->st_shndx;
-				/// JUST FIX THIS SYMBOL PART HERE 
-				symbolData->data = (unsigned char*) ( (uint64_t)this->mappedFile + (uint64_t) this->elfSection.sectionArray.at(symbol->st_shndx)->sh_offset);
+			if (symbol->st_shndx <= this->elfSection.sectionArray.size()) {
+				symbolData->data = (unsigned char*) ( (uint64_t)this->mappedFile + 
+													  (uint64_t) symbol->st_value);
 			}
-
+			
 			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
 			this->symbolTable.symbolDataMapped.insert(std::make_pair(symbolName, symbolData));
 		}

@@ -53,6 +53,7 @@ struct SymbolTable {
 	std::unordered_map<std::string , SymbolData*>::const_iterator symbolDataMappedIter;
 };
 
+
 struct ProgramHeaderTable {
 	Elf64_Phdr* program_head;
 	uint16_t size;
