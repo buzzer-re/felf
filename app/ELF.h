@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include <elf.h>
 #include <sys/mman.h>
@@ -9,63 +9,36 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
 #include <vector>
 #include <utility>
 #include <string>
 #include <cstdio>
 
+#include <errno.h>
+#include <string.h>
+
 #include "utils.h"
 
-
-typedef std::unordered_map<uint64_t, const char*> HEADER_MAP_VALUE_TO_STRING;
-typedef std::unordered_map<uint64_t, HEADER_MAP_VALUE_TO_STRING> HEADER_MAP_BYTE_TO_MAP;
-
-static const HEADER_MAP_BYTE_TO_MAP HEADER_MAP_VALUES = {
-	{EI_CLASS,
-		{
-			{ELFCLASSNONE,	"Invalid ELF class"},
-			{ELFCLASS32,	"ELF32"},
-			{ELFCLASS64,	"ELF64"}
-		}
-	},
-	{EI_DATA,
-		{
-			{ELFDATANONE,	"Unknown data format"},
-			{ELFDATA2LSB,	"Two's complement, little-endian"},
-			{ELFDATA2MSB,	"Two's complement, big-endian"}
-		}
-	},
-	{EI_VERSION,
-		{
-			{EV_NONE,	"Invalid Version"},
-			{EV_CURRENT,"Current Version"}
-		}
-	},
-	{EI_OSABI,
-		{
-			{ELFOSABI_NONE,		"UNIX System V ABI"},
-			{ELFOSABI_SYSV,		"Unix System V ABI"},
-			{ELFOSABI_HPUX,		"HP-UX ABI"},
-			{ELFOSABI_NETBSD,	"NetBSD ABI"},
-			{ELFOSABI_LINUX,	"Linux ABI"},
-			{ELFOSABI_SOLARIS,	"Solaris ABI"},
-			{ELFOSABI_IRIX,		"IRIX ABI"},
-			{ELFOSABI_FREEBSD,	"FreeBSD ABI"},
-			{ELFOSABI_TRU64,	"TRU64 UNIX ABI"},
-			{ELFOSABI_ARM,		"ARM architecture ABI"},
-			{ELFOSABI_STANDALONE,"Stand-alone (embedded) ABI"}
-		}
-	},
-};
-
+#define MAP_RW PROT_WRITE | PROT_READ
+#define MAP_RO PROT_READ
+#define MAP_EX PROT_READ | PROT_EXEC
 
 struct SectionHeaderTable {
 	Elf64_Shdr* section_head;
 	uint16_t length;
 	uint16_t size;
+	std::vector<Elf64_Shdr*> sectionArray;
 	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
 	std::unordered_map<std::string , Elf64_Shdr*>::const_iterator sectionsMappedIter;
+};
+
+
+struct SymbolData {
+	Elf64_Sym* symbol;
+	unsigned char* data;
+	uint64_t size;
 };
 
 struct SymbolTable {
@@ -75,6 +48,9 @@ struct SymbolTable {
 	uint16_t length;
 	std::unordered_map<std::string , Elf64_Sym*> symbolsMapped;
 	std::unordered_map<std::string , Elf64_Sym*>::const_iterator symbolsMappedIter;
+
+	std::unordered_map<std::string, SymbolData*> symbolDataMapped;
+	std::unordered_map<std::string , SymbolData*>::const_iterator symbolDataMappedIter;
 };
 
 struct ProgramHeaderTable {
@@ -86,16 +62,20 @@ struct ProgramHeaderTable {
 
 class ELF {
 public:
-	ELF(const std::string& fPath);
+	ELF(const std::string& fPath, int mode = MAP_RO);
 	~ELF();
 	
 	bool valid() const { return this->validELF; };
 
 	void displayHeader() const;
 
+	bool save(const std::string& output) const;
+
 private:
-	void* map_file(const std::string& file);
-	void build_elf();
+	void* map_file(const std::string& file, int mode);
+	void build_quick_elf();
+
+	Elf64_Section* getSectionByIndex(int index) const;
 
 	std::string getNameFromStringTable(uint64_t index) const;
 	std::string getNameFromSymbolStringTable(uint64_t index) const;
@@ -111,6 +91,7 @@ private:
 	uint32_t elf_magic = 0x7f454c46;
 #endif 
 
+public:
 	// Elf structs
 	Elf64_Ehdr* elfHeader;
 	Elf64_Shdr* stringSectionHdr;
@@ -119,6 +100,4 @@ private:
 	SectionHeaderTable elfSection;
 	SymbolTable symbolTable;
 	ProgramHeaderTable phrTable;
-
-	
 };

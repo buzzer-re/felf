@@ -2,24 +2,24 @@
 
 
 
-ELF::ELF(const std::string& fPath)
+ELF::ELF(const std::string& fPath, int mode)
 {
 	
-	this->mappedFile = this->map_file(fPath);
+	this->mappedFile = this->map_file(fPath, mode);
 
 	if (mappedFile == nullptr) {
 		this->validELF = false;
 		return;
 	}
 
-	elfHeader = (Elf64_Ehdr*) mappedFile;
+	this->elfHeader = (Elf64_Ehdr*) mappedFile;
 	
-	int e_ident_s = sizeof(elfHeader->e_ident)/sizeof(unsigned char);
+	int e_ident_s = sizeof(this->elfHeader->e_ident)/sizeof(unsigned char);
 	this->validELF = this->elf_magic == *(uint32_t*)&elfHeader->e_ident 
 					 && e_ident_s == EI_NIDENT;
 	
 	if (this->validELF) {
-		this->build_elf();
+		this->build_quick_elf();
 	}
 
 }
@@ -32,7 +32,7 @@ ELF::~ELF()
 }
 
 
-void* ELF::map_file(const std::string& file)
+void* ELF::map_file(const std::string& file, int mode)
 {
 	const char* file_c = file.c_str();
 	
@@ -40,27 +40,46 @@ void* ELF::map_file(const std::string& file)
 	stat(file_c, &st);
 	this->fileSize = st.st_size;
 
-	int fd = open(file_c, O_RDONLY);
-	if (!fd) return nullptr;
+	int fd = open(file_c, O_RDWR); /// ALGO AQUI COM O FILE DESCRIPTOR
+	if (fd < 0 ) return nullptr;
 
-	void* mapped_file = mmap(NULL, fileSize, PROT_READ, MAP_SHARED, fd, 0);
+	void* mapped_file = mmap(NULL, fileSize, mode, MAP_SHARED, fd, 0);
+
 	close(fd);
 
 	return mapped_file;	
+}
+
+bool ELF::save(const std::string& output) const 
+{
+	if (this->mappedFile != nullptr && this->validELF) {
+		std::ofstream outputElf(output.c_str(), std::ios::out | std::ios::binary);
+		bool good;
+
+		if (!outputElf) return false;
+
+		outputElf.write((char*) this->mappedFile, this->fileSize);
+
+		good = outputElf.good();
+		outputElf.close();
+		return good;
+	}
+
+	return false;
 }
 
 /**
  * 
  * Build elf file structs
  */
-void ELF::build_elf()
+void ELF::build_quick_elf()
 {	
 	Elf64_Shdr* section;
 	Elf64_Sym* symbol;
+	void* symbolData;
 	Elf64_Phdr* phr;
 	std::string sectionName;
 	
-
 	/// Mapping program header table
 	if (elfHeader->e_phoff) {
 		this->phrTable.length = elfHeader->e_phnum;
@@ -81,6 +100,7 @@ void ELF::build_elf()
 	this->elfSection.size    = this->elfHeader->e_shentsize;
 	this->stringSectionHdr = (Elf64_Shdr*) ((uint64_t) this->elfSection.section_head + ((uint64_t) this->elfSection.size * this->elfHeader->e_shstrndx));
 	this->elfSection.sectionsMapped.reserve(this->elfSection.length);
+	this->elfSection.sectionArray.reserve(this->elfSection.length);
 	/// Building section map
 
 	/// Map all sections in a map
@@ -88,6 +108,8 @@ void ELF::build_elf()
 		section = (Elf64_Shdr*) ((uint64_t)this->elfSection.section_head + (i*this->elfSection.size));
 		sectionName = this->getNameFromStringTable(section->sh_name);
 		this->elfSection.sectionsMapped.insert(std::make_pair(sectionName,  section));
+		std::cout << sectionName << " " << i << std::endl;
+		this->elfSection.sectionArray.push_back(section);
 	}
 
 	/// End section map
@@ -98,7 +120,7 @@ void ELF::build_elf()
 		this->stringSymbolTable = this->elfSection.sectionsMapped.find(".strtab")->second;
 		this->symbolTable.section = this->elfSection.sectionsMappedIter->second;
 		this->symbolTable.symbol_head = (Elf64_Sym*) ((uint64_t) this->symbolTable.section->sh_offset + (uint64_t) this->mappedFile);
-		this->symbolTable.size = sizeof(Elf64_Sym); 
+		this->symbolTable.size = sizeof(Elf64_Sym);
 		this->symbolTable.length = this->elfSection.sectionsMappedIter->second->sh_size/sizeof(Elf64_Sym);
 		this->symbolTable.symbolsMapped.reserve(this->symbolTable.length);
 
@@ -106,7 +128,17 @@ void ELF::build_elf()
 		for (auto i = 0; i < this->symbolTable.length; ++i) {
 			symbol = (Elf64_Sym*) ((uint64_t) this->symbolTable.symbol_head + (i * this->symbolTable.size));
 			symbolName = this->getNameFromSymbolStringTable(symbol->st_name);
+			SymbolData* symbolData = new SymbolData;
+			
+			symbolData->size = symbol->st_size;
+			if (symbol->st_shndx < this->elfSection.sectionArray.size()) {
+				// std::cout << "Symbol index -> " << symbol->st_shndx;
+				/// JUST FIX THIS SYMBOL PART HERE 
+				symbolData->data = (unsigned char*) ( (uint64_t)this->mappedFile + (uint64_t) this->elfSection.sectionArray.at(symbol->st_shndx)->sh_offset);
+			}
+
 			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
+			this->symbolTable.symbolDataMapped.insert(std::make_pair(symbolName, symbolData));
 		}
 	}
 
@@ -135,32 +167,3 @@ std::string ELF::getNameFromSymbolStringTable(uint64_t index) const
 	return name;
 }
 
-/**
-COMMENT
-**/
-void ELF::displayHeader() const
-{
-	std::cout << "Header:\n";
-
-	HEADER_MAP_VALUE_TO_STRING::const_iterator valueIter;
-	HEADER_MAP_BYTE_TO_MAP::const_iterator iter;
-	std::string valueOutput;
-	unsigned char byteat;
-
-	/// Magic Number parser
-	for (int i = 0; i < EI_NIDENT; ++i) {
-		iter = HEADER_MAP_VALUES.find(i);
-		byteat = this->elfHeader->e_ident[i];
-
-		if (iter != HEADER_MAP_VALUES.end()) {
-			valueIter = iter->second.find(byteat);
-			if (valueIter != iter->second.end()) {
-				// std::printf("%s (0x%x)\n", valueIter->second, byteat);
-			}
-		} else {
-			std::printf("0x%x ", SHRINK_ASCII(byteat), byteat);
-		}
-	}
-
-	std::cout << std::endl;
-}
