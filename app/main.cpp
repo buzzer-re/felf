@@ -31,20 +31,23 @@ int main(int argc, char* argv[])
         return 1;
     }
 	
-	ELF elf(filePath);
+	ELF elf(filePath, MAP_RW);
 	
 	if (!elf.valid()) {
 		std::cerr << "Invalid ELF provided!\n";
 		return 1;
 	}
 
-    Argument& displayHeader = args.getArgument(DISPLAY_ARG);
 
-    if (!displayHeader.argValue.empty()) {
-        elf.displayHeader();
+
+    elf.symbolTable.symbolDataMappedIter = elf.symbolTable.symbolDataMapped.find("main");
+
+    for (unsigned i = 0; i < elf.symbolTable.symbolDataMappedIter->second->size; ++i) {
+        printf("0x%x", * (elf.symbolTable.symbolDataMapped.find("main")->second->data + i));
     }
-
-
+    
+    elf.save("quicksave");
+    
     return 0;   
 }
 
