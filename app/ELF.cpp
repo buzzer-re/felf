@@ -40,7 +40,7 @@ void* ELF::map_file(const std::string& file, int mode)
 	stat(file_c, &st);
 	this->fileSize = st.st_size;
 
-	int fd = open(file_c, O_RDWR); /// ALGO AQUI COM O FILE DESCRIPTOR
+	int fd = open(file_c, O_RDWR);
 	if (fd < 0 ) return nullptr;
 
 	void* mapped_file = mmap(NULL, fileSize, mode, MAP_SHARED, fd, 0);
@@ -50,6 +50,10 @@ void* ELF::map_file(const std::string& file, int mode)
 	return mapped_file;	
 }
 
+/**
+ *	Save mapped file back to disk 
+ * 
+ */
 bool ELF::save(const std::string& output) const 
 {
 	if (this->mappedFile != nullptr && this->validELF) {
@@ -62,6 +66,11 @@ bool ELF::save(const std::string& output) const
 
 		good = outputElf.good();
 		outputElf.close();
+
+		if (good) {
+			chmod(output.c_str(), S_IRWXU | S_IRGRP | S_IXGRP |S_IROTH | S_IXOTH); // 755
+		}
+
 		return good;
 	}
 
@@ -124,18 +133,17 @@ void ELF::build_quick_elf()
 		this->symbolTable.symbolsMapped.reserve(this->symbolTable.length);
 
 		std::string symbolName;
-		std::cout << "Parsing " << symbolTable.length << " symbols\n";
 		for (auto i = 0; i < this->symbolTable.length; ++i) {
 			symbol = (Elf64_Sym*) ((uint64_t) this->symbolTable.symbol_head + (i * this->symbolTable.size));
 			symbolName = this->getNameFromSymbolStringTable(symbol->st_name);
-			SymbolData* symbolData = new SymbolData;
+			SymbolData symbolData;
 			
-			symbolData->size = symbol->st_size;
+			symbolData.size = symbol->st_size;
 			if (symbol->st_shndx <= this->elfSection.sectionArray.size()) {
-				symbolData->data = (unsigned char*) ( (uint64_t)this->mappedFile + 
+				symbolData.data = (unsigned char*) ( (uint64_t)this->mappedFile + 
 													  (uint64_t) symbol->st_value);
 			}
-			
+
 			this->symbolTable.symbolsMapped.insert(std::make_pair(symbolName, symbol));
 			this->symbolTable.symbolDataMapped.insert(std::make_pair(symbolName, symbolData));
 		}
@@ -164,5 +172,16 @@ std::string ELF::getNameFromSymbolStringTable(uint64_t index) const
 	std::string name = (char*) ( ((uint64_t) this->stringSymbolTable->sh_offset + (uint64_t) this->mappedFile) + index);
 
 	return name;
+}
+
+
+void ELF::incFileSize(uint value)  
+{
+	this->fileSize += value;
+}
+
+void ELF::decFileSize(uint value)
+{
+	this->fileSize -= value;
 }
 

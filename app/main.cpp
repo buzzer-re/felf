@@ -39,15 +39,12 @@ int main(int argc, char* argv[])
 	}
 
 
+    for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin(); 
+        elf.symbolTable.symbolsMappedIter != elf.symbolTable.symbolsMapped.end(); 
+        ++elf.symbolTable.symbolsMappedIter) {
 
-    elf.symbolTable.symbolDataMappedIter = elf.symbolTable.symbolDataMapped.find("main");
-    
-
-    for (unsigned i = 0; i < elf.symbolTable.symbolDataMappedIter->second->size; ++i) {
-        printf("%c", * (elf.symbolTable.symbolDataMapped.find("main")->second->data + i));
+        elf.symbolTable.symbolsMappedIter->second->st_name = -1;
     }
-    
-    // elf.save("quicksave");
     
     return 0;   
 }
