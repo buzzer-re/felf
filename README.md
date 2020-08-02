@@ -75,7 +75,7 @@ struct SymbolTable {
 };
 ```
 
-The same idea of Section struct above, but here beside a map to the symbol struct there is a map to the symbol raw data itself (eg: Look for ***main*** data).
+The same idea of Section struct above, but here besides a map to the symbol struct there is a map to the symbol raw data itself (eg: Look for ***main*** data).
 
 
 ### Program Header table
@@ -190,7 +190,7 @@ The program will still work, this is like strip a binary without strip
 
 
 ## What next ?
-* Python bindings [Priority]
+* Python bindings [Priority<]
 * Build tools to work with a large amount of ELF's, just like [telfhash](https://github.com/trendmicro/telfhash) but using this lib as the back bone.
 
 
