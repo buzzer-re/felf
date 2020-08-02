@@ -19,8 +19,6 @@
 #include <errno.h>
 #include <string.h>
 
-#include "utils.h"
-
 #define MAP_RW PROT_WRITE | PROT_READ
 #define MAP_RO PROT_READ
 #define MAP_EX PROT_READ | PROT_EXEC
@@ -49,8 +47,8 @@ struct SymbolTable {
 	std::unordered_map<std::string , Elf64_Sym*> symbolsMapped;
 	std::unordered_map<std::string , Elf64_Sym*>::iterator symbolsMappedIter;
 
-	std::unordered_map<std::string, SymbolData> symbolDataMapped;
-	std::unordered_map<std::string , SymbolData>::iterator symbolDataMappedIter;
+	std::unordered_map<std::string, SymbolData*> symbolDataMapped;
+	std::unordered_map<std::string , SymbolData*>::iterator symbolDataMappedIter;
 };
 
 
