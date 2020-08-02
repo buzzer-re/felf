@@ -148,34 +148,24 @@ for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin();
     elf.symbolTable.symbolsMappedIter->second->st_name = -1;
 }
 ```
+
+Before running this, take a look at ***file*** command output before:
+
+> $ file teste \
+teste: ELF 64-bit ...  not stripped
+
 ```sh
-~/.../quickelf/app >>> ./corrupt --input ~/teste                   
+$ ./corrupt --input ~/teste                   
 Corrupting _ZNSt8ios_base4InitD1Ev@@GLIBCXX_3.4
 Corrupting _ITM_registerTMCloneTable
-Corrupting __libc_start_main@@GLIBC_2.2.5
-Corrupting _ITM_deregisterTMCloneTable
-Corrupting __gxx_personality_v0@@CXXABI_1.3
-Corrupting _end
-Corrupting __data_start
-Corrupting _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EPKcRKS3_@@GLIBCXX_3.4.21
-Corrupting _ZN3ELFD1Ev
-Corrupting _ZSt4cout@@GLIBCXX_3.4
-Corrupting __TMC_END__
-Corrupting __stack_chk_fail@@GLIBC_2.4
-Corrupting _ZNSaIcED1Ev@@GLIBCXX_3.4
-Corrupting _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKh@@GLIBCXX_3.4
-Corrupting _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@@GLIBCXX_3.4
-Corrupting _start
-Corrupting _fini
-Corrupting DW.ref.__gxx_personality_v0
-Corrupting __gmon_start__
-Corrupting _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev@@GLIBCXX_3.4.21
-Corrupting _ZN3ELFC1ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEi
-Corrupting __bss_start
-Corrupting __dso_handle
+...
 Corrupting main
 ```
 
+And after
+
+> $ file teste \
+teste: ELF 64-bit ...  not stripped
 
 ***readelf -s <file>***
 ```
@@ -185,7 +175,7 @@ Corrupting main
 31: 00000000000011a0     0 FUNC    LOCAL  DEFAULT   13 <corrupt>
 ```
 
-The program will still work, this is like strip a binary without strip
+The program will still work, this is like strip a binary without strip.
 
 
 
