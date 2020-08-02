@@ -8,6 +8,7 @@ ELF::ELF(const std::string& fPath, int mode)
 	this->mappedFile = this->map_file(fPath, mode);
 
 	if (mappedFile == nullptr) {
+		std::cerr << strerror(errno) << std::endl;
 		this->validELF = false;
 		return;
 	}
@@ -27,8 +28,14 @@ ELF::ELF(const std::string& fPath, int mode)
 
 ELF::~ELF()
 {
-	if (this->mappedFile != nullptr)
+	if (this->mappedFile != nullptr) {
 		munmap(this->mappedFile, this->fileSize);
+
+		for (auto it = this->symbolTable.symbolDataMapped.begin(); 
+			it != this->symbolTable.symbolDataMapped.end(); 
+			++it)	
+			delete it->second;
+	}
 }
 
 
@@ -40,8 +47,8 @@ void* ELF::map_file(const std::string& file, int mode)
 	stat(file_c, &st);
 	this->fileSize = st.st_size;
 
-	int fd = open(file_c, O_RDWR);
-	if (fd < 0 ) return nullptr;
+	int fd = open(file_c, mode - 1);
+	if ( fd < 0 ) return nullptr;
 
 	void* mapped_file = mmap(NULL, fileSize, mode, MAP_SHARED, fd, 0);
 
@@ -136,11 +143,11 @@ void ELF::build_quick_elf()
 		for (auto i = 0; i < this->symbolTable.length; ++i) {
 			symbol = (Elf64_Sym*) ((uint64_t) this->symbolTable.symbol_head + (i * this->symbolTable.size));
 			symbolName = this->getNameFromSymbolStringTable(symbol->st_name);
-			SymbolData symbolData;
+			SymbolData* symbolData = new SymbolData;
 			
-			symbolData.size = symbol->st_size;
+			symbolData->size = symbol->st_size;
 			if (symbol->st_shndx <= this->elfSection.sectionArray.size()) {
-				symbolData.data = (unsigned char*) ( (uint64_t)this->mappedFile + 
+				symbolData->data = (unsigned char*) ( (uint64_t)this->mappedFile + 
 													  (uint64_t) symbol->st_value);
 			}
 

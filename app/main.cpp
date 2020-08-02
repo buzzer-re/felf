@@ -14,6 +14,7 @@
 
 bool exists(const std::string& filePath);
 
+
 int main(int argc, char* argv[]) 
 {
 
@@ -39,12 +40,19 @@ int main(int argc, char* argv[])
 	}
 
 
-    for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin(); 
-        elf.symbolTable.symbolsMappedIter != elf.symbolTable.symbolsMapped.end(); 
-        ++elf.symbolTable.symbolsMappedIter) {
 
-        elf.symbolTable.symbolsMappedIter->second->st_name = -1;
+    elf.symbolTable.symbolDataMappedIter = elf.symbolTable.symbolDataMapped.find("main");
+
+    for (auto i = 0; i < elf.symbolTable.symbolDataMappedIter->second->symbol->st_size; ++i) {
+        printf("%c", elf.symbolTable.symbolDataMappedIter->second->data);
     }
+    // for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin(); 
+    //     elf.symbolTable.symbolsMappedIter != elf.symbolTable.symbolsMapped.end(); 
+    //     ++elf.symbolTable.symbolsMappedIter) {
+        
+    //     std::cout << "Corrupting " << elf.symbolTable.symbolsMappedIter->first << std::endl;
+    //     elf.symbolTable.symbolsMappedIter->second->st_name = -1;
+    // }
     
     return 0;   
 }
