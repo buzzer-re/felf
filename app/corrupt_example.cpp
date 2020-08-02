@@ -5,7 +5,7 @@
 #include <sys/mman.h>
 
 #include "Argparse.h"
-#include "ELF.h"
+#include <felf/ELF.h>
 
 
 #define INPUT_ARG "input"
@@ -43,16 +43,13 @@ int main(int argc, char* argv[])
 
     elf.symbolTable.symbolDataMappedIter = elf.symbolTable.symbolDataMapped.find("main");
 
-    for (auto i = 0; i < elf.symbolTable.symbolDataMappedIter->second->symbol->st_size; ++i) {
-        printf("%c", elf.symbolTable.symbolDataMappedIter->second->data);
-    }
-    // for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin(); 
-    //     elf.symbolTable.symbolsMappedIter != elf.symbolTable.symbolsMapped.end(); 
-    //     ++elf.symbolTable.symbolsMappedIter) {
+    for (elf.symbolTable.symbolsMappedIter= elf.symbolTable.symbolsMapped.begin(); 
+        elf.symbolTable.symbolsMappedIter != elf.symbolTable.symbolsMapped.end(); 
+        ++elf.symbolTable.symbolsMappedIter) {
         
-    //     std::cout << "Corrupting " << elf.symbolTable.symbolsMappedIter->first << std::endl;
-    //     elf.symbolTable.symbolsMappedIter->second->st_name = -1;
-    // }
+        std::cout << "Corrupting " << elf.symbolTable.symbolsMappedIter->first << std::endl;
+        elf.symbolTable.symbolsMappedIter->second->st_name = -1;
+    }
     
     return 0;   
 }
