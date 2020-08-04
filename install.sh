@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir build
+mkdir -p build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 sudo make install/strip
