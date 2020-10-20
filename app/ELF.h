@@ -23,14 +23,6 @@
 #define MAP_RO PROT_READ
 #define MAP_EX PROT_READ | PROT_EXEC
 
-struct SectionHeaderTable {
-	Elf64_Shdr* section_head;
-	uint16_t length;
-	uint16_t size;
-	std::vector<Elf64_Shdr*> sectionArray;
-	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
-	std::unordered_map<std::string , Elf64_Shdr*>::iterator sectionsMappedIter;
-};
 
 
 struct SymbolData {
@@ -38,6 +30,27 @@ struct SymbolData {
 	unsigned char* data;
 	uint64_t size;
 };
+
+struct SectionData {
+	Elf64_Shdr* section;
+	unsigned char* data;
+	uint64_t size;
+};
+
+struct SectionHeaderTable {
+	Elf64_Shdr* section_head;
+	uint16_t length;
+	uint16_t size;
+	std::vector<Elf64_Shdr*> sectionArray;
+	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
+	std::unordered_map<std::string , Elf64_Shdr*>::iterator sectionsMappedIter;
+
+
+	std::unordered_map<std::string, SectionData*> sectionData;
+	std::unordered_map<std::string , SectionData*>::iterator sectionDatIter;
+};
+
+
 
 struct SymbolTable {
 	Elf64_Sym* symbol_head;
