@@ -35,6 +35,11 @@ ELF::~ELF()
 			it != this->symbolTable.symbolDataMapped.end(); 
 			++it)	
 			delete it->second;
+		
+		for (auto it = this->elfSection.sectionData.begin();
+			it != this->elfSection.sectionData.end();
+			++it)
+			delete it->second;
 	}
 }
 
@@ -125,6 +130,13 @@ void ELF::build_quick_elf()
 		sectionName = this->getNameFromStringTable(section->sh_name);
 		this->elfSection.sectionsMapped.insert(std::make_pair(sectionName,  section));
 		this->elfSection.sectionArray.push_back(section);
+
+		SectionData* sectionData = new SectionData;
+		sectionData->size = section->sh_size;
+		sectionData->section = section;
+		sectionData->data = (unsigned char*) ((uint64_t) section->sh_offset + (uint64_t) this->mappedFile);
+
+		this->elfSection.sectionData.insert(std::make_pair(sectionName, sectionData));
 	}
 
 	/// End section map
