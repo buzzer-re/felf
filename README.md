@@ -22,12 +22,6 @@ All the raw files is mapped into memory and the structs are organized to the raw
 
 
 ```cpp
-struct SectionData {
-	Elf64_Shdr* section;
-	unsigned char* data;
-	uint64_t size;
-};
-
 struct SectionHeaderTable {
 	Elf64_Shdr* section_head;
 	uint16_t length;
@@ -35,13 +29,9 @@ struct SectionHeaderTable {
 	std::vector<Elf64_Shdr*> sectionArray;
 	std::unordered_map<std::string , Elf64_Shdr*> sectionsMapped;
 	std::unordered_map<std::string , Elf64_Shdr*>::iterator sectionsMappedIter;
-
-
-	std::unordered_map<std::string, SectionData*> sectionData;
-	std::unordered_map<std::string , SectionData*>::iterator sectionDatIter;
 };
 ```
-The struct above show what this lib do, by parsing an ELF file this will create for you a ***SectionHeaderTable*** with the first section pointer (section_head), their lenght and size (extracted from ElfHeader) a vector of ***Elf64_Shdr**** pointers and a unordered_map with the section name as ***key*** and the ***Elf64_Shdr**** as value, also a pre-built iterator for general porpuse. You can also access the raw section data itself by using the ***sectionData*** map (More examples at the end of the readme)
+The struct above show what this lib do, by parsing an ELF file this will create for you a ***SectionHeaderTable*** with the first section pointer (section_head), their lenght and size (extracted from ElfHeader) a vector of ***Elf64_Shdr**** pointers and a unordered_map with the section name as ***key*** and the ***Elf64_Shdr**** as value, also a pre-built iterator for general porpuse.
 
 
 ## Installing
@@ -111,6 +101,12 @@ Elf64_Shdr* stringSymbolTable;
 
 There is also the ***Elf Header*** ***String section header***  and ***Symbol string table***.
 
+ELF internal variables:
+
+```cpp
+SectionHeaderTable elfSection;
+SymbolTable symbolTable;
+```
 
 
 #### Pratical examples:
@@ -119,6 +115,7 @@ There is also the ***Elf Header*** ***String section header***  and ***Symbol st
 
 ```cpp
 #include <felf/ELF.h>
+#include <iostream>
 #include <string.h>
 
 int main() {
@@ -187,25 +184,7 @@ teste: ELF 64-bit ...  not stripped
 
 The program will still work, this is like strip a binary without strip.
 
-### Sections dump
 
-The function below takes the ***ELF*** class and use his internals structures to dump all sections into disk:
-
-```cpp
-void dumpSectionHashes(const ELF& elf)
-{
-	for (auto it = elf.elfSection.sectionData.begin(); it != elf.elfSection.sectionData.end(); ++it) {
-		ssize_t size = it->second->size;		
-		std::ofstream outstream(it->first, std::ios::out | std::ios::binary);
-		std::cout << outstream.good() << std::endl;
-
-		if (outstream.good()) {
-			outstream.write((char*) it->second->data, size); // WRite section raw data
-			outstream.close();
-		}
-	}
-}
-```
 
 ## What next ?
 * Python bindings [Priority<]
