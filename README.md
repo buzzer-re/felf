@@ -1,7 +1,7 @@
 # Felf
 ![C/C++ CI](https://github.com/AandersonL/quickelf/workflows/C/C++%20CI/badge.svg?branch=master)
 
-felf it's a library to parse x64 ELF files into C++ structures (unordered_map, vector and so on). 
+felf it's a library to parse x64 ELF files into C++ structures (unordered_map, vector and so on), take a look at my [post](https://aandersonl.github.io/Manipulating-elf-with-felf/) about
 
 ### Why ?
 
